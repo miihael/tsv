@@ -9,9 +9,12 @@ import (
 	"strconv"
 )
 
+const defNullValue = "n/a"
+
 // Parser has information for parser
 type Parser struct {
 	Headers    []string
+	NullValue  string
 	Reader     *csv.Reader
 	Data       interface{}
 	ref        reflect.Value
@@ -39,6 +42,7 @@ func NewParser(reader io.Reader, data interface{}) (*Parser, error) {
 	p := &Parser{
 		Reader:     r,
 		Headers:    headers,
+		NullValue:  defNullValue,
 		Data:       data,
 		ref:        reflect.ValueOf(data).Elem(),
 		indices:    make([]int, len(headers)),
@@ -80,6 +84,7 @@ func NewParserWithoutHeader(reader io.Reader, data interface{}) *Parser {
 
 	p := &Parser{
 		Reader:    r,
+		NullValue: defNullValue,
 		Data:      data,
 		ref:       reflect.ValueOf(data).Elem(),
 		normalize: -1,
@@ -143,7 +148,7 @@ func (p *Parser) Next() (eof bool, err error) {
 				field.SetBool(col)
 			}
 		case reflect.Int:
-			if record == "" {
+			if record == "" || record == p.NullValue {
 				field.SetInt(0)
 			} else {
 				col, err := strconv.ParseInt(record, 10, 0)
@@ -153,7 +158,7 @@ func (p *Parser) Next() (eof bool, err error) {
 				field.SetInt(col)
 			}
 		case reflect.Float32, reflect.Float64:
-			if record == "" {
+			if record == "" || record == p.NullValue {
 				field.SetFloat(0)
 			} else {
 				col, err := strconv.ParseFloat(record, 64)
