@@ -152,6 +152,16 @@ func (p *Parser) Next() (eof bool, err error) {
 				}
 				field.SetInt(col)
 			}
+		case reflect.Float32, reflect.Float64:
+			if record == "" {
+				field.SetFloat(0)
+			} else {
+				col, err := strconv.ParseFloat(record, 64)
+				if err != nil {
+					return false, err
+				}
+				field.SetFloat(col)
+			}
 		default:
 			return false, errors.New("Unsupported field type")
 		}
